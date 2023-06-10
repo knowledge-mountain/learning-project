@@ -45,16 +45,13 @@ jobs:
         working-directory: ./terraform
       - name: Set output
         id: set-ip
-        run: |-
-          echo "::set-output name=instance_public_ip::$(terraform output instance_public_ip)"
+        run: echo "instance_public_ip=$(terraform output instance_public_ip)" >> "$GITHUB_OUTPUT"
   deploy-app:
     runs-on: ubuntu-latest
     needs: deploy-infra
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Set IP env variables
-        run: echo "SERVER_PUBLIC_IP=${{ needs.deploy-infra.outputs.SERVER_PUBLIC_IP }}" >> $GITHUB_ENV
       - name: Login to AWS ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
@@ -64,6 +61,7 @@ jobs:
           REPOSITORY: simple-rest-api
           IMAGE_TAG: ${{github.sha}}
           AWS_DEFAULT_REGION: "eu-central-1"
+          SERVER_PUBLIC_IP: ${{needs.deploy-infra.outputs.SERVER_PUBLIC_IP}}
         run: |-
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
