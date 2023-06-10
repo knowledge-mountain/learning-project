@@ -1,5 +1,0 @@
-build/
-keycloak-data/
-db-data/
-.idea
-.gradle
