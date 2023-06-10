@@ -17,7 +17,7 @@ jobs:
   deploy-infra:
     runs-on: ubuntu-latest
     outputs:
-      SERVER_PUBLIC_IP: ${{steps.set-ip.outputs.SERVER_PUBLIC_IP}}
+      server-public-ip: ${{steps.set-ip.outputs.server-ip}}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -45,10 +45,9 @@ jobs:
         working-directory: ./terraform
       - name: Set output
         id: set-ip
-        run: |
-          echo "SERVER_PUBLIC_IP=$(terraform output instance_public_ip)" >> "$GITHUB_OUTPUT"
-      - name: Show outputs
-        run: echo "Outputs ${{steps.set-ip.outputs.SERVER_PUBLIC_IP}}"
+        # run: |
+          # echo "server-ip=$(terraform output instance_public_ip)" >> "$GITHUB_OUTPUT"
+        run: echo "server-ip=server-public-ip-address" >> "$GITHUB_OUTPUT"
   deploy-app:
     runs-on: ubuntu-latest
     needs: deploy-infra
@@ -56,8 +55,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Set IP env variable
-        run: |
-          echo "SERVER_PUBLIC_IP=${{ needs.deploy-infra.outputs.SERVER_PUBLIC_IP }}" >> "$GITHUB_ENV"
+        env:
+          SERVER_PUBLIC_IP: ${{needs.deploy-infra.outputs.server-public-ip }}
+        # run: echo "SERVER_PUBLIC_IP=${{ needs.deploy-infra.outputs.server-public-ip }}" >> "$GITHUB_ENV"
+        run: echo "$SERVER_PUBLIC_IP"
       - name: Login to AWS ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
